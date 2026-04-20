@@ -21,11 +21,11 @@ jobs:
     - name: 3. Biên dịch Code ra file .class
       run: |
         mkdir bin
-        javac -d bin y/QuanLyKhachHang.java 
+        javac -d bin QuanLyKhachHang.java 
 
     - name: 4. Đóng gói thành file .jar
       run: |
-        jar cfe code-wed.jar y.QuanLyKhachHang -C bin .
+        jar cfe code-wed.jar QuanLyKhachHang -C bin .
 
     - name: 5. Tải và giải nén công cụ Launch4j
       run: |
