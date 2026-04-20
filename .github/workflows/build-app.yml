@@ -10,10 +10,10 @@ jobs:
 
     steps:
     - name: 1. Tải code từ kho về máy ảo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: 2. Cài đặt môi trường Java 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
@@ -50,7 +50,7 @@ jobs:
         Compress-Archive -Path DevStudio_CRM_Release\* -DestinationPath DevStudio_CRM_Final.zip
 
     - name: 9. Giao hàng! (Upload file ZIP để bạn tải về)
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Windows-App-Release
         path: DevStudio_CRM_Final.zip
