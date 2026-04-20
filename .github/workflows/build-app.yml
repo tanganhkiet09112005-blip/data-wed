@@ -1,0 +1,56 @@
+name: Build and Package DevStudio CRM
+
+on:
+  push:
+    branches: [ "main", "master" ] # Tự động chạy khi có code mới đẩy lên
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest # Dùng máy ảo Windows của GitHub
+
+    steps:
+    - name: 1. Tải code từ kho về máy ảo
+      uses: actions/checkout@v3
+
+    - name: 2. Cài đặt môi trường Java 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: 3. Biên dịch Code ra file .class
+      run: |
+        mkdir bin
+        javac -d bin y/QuanLyKhachHang.java 
+
+    - name: 4. Đóng gói thành file .jar
+      run: |
+        jar cfe code-wed.jar y.QuanLyKhachHang -C bin .
+
+    - name: 5. Tải và giải nén công cụ Launch4j
+      run: |
+        curl -L -o launch4j.zip https://sourceforge.net/projects/launch4j/files/launch4j-3/3.50/launch4j-3.50-win32.zip/download
+        tar -xf launch4j.zip
+
+    - name: 6. Dùng Launch4j "đúc" ra file .exe
+      run: |
+        .\launch4j\launch4jc.exe software-quanly.xml
+
+    - name: 7. Lấy chìa khóa từ Két sắt để tạo file firebase.json
+      env:
+        FIREBASE_SECRET: ${{ secrets.FIREBASE_JSON_CONTENT }}
+      run: |
+        $env:FIREBASE_SECRET | Out-File -FilePath firebase.json -Encoding utf8
+
+    - name: 8. Gom hàng và nén thành file ZIP
+      run: |
+        mkdir DevStudio_CRM_Release
+        copy DevStudio_CRM.exe DevStudio_CRM_Release\
+        copy firebase.json DevStudio_CRM_Release\
+        Compress-Archive -Path DevStudio_CRM_Release\* -DestinationPath DevStudio_CRM_Final.zip
+
+    - name: 9. Giao hàng! (Upload file ZIP để bạn tải về)
+      uses: actions/upload-artifact@v3
+      with:
+        name: Windows-App-Release
+        path: DevStudio_CRM_Final.zip
