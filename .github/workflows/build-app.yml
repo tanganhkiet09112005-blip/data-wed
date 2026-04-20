@@ -12,8 +12,10 @@ jobs:
     - name: 1. Tải code về máy ảo
       uses: actions/checkout@v4
 
-    - name: 2. Kiểm tra danh sách file (Để debug)
-      run: dir
+    - name: 2. Kiểm tra file hiện tại (Debug)
+      run: |
+        dir
+        if (Test-Path "QuanLyKhachHang.java") { echo "Da thay file Java" } else { throw "Khong thay file QuanLyKhachHang.java o thu muc goc!" }
 
     - name: 3. Cài đặt Java 17
       uses: actions/setup-java@v4
@@ -23,7 +25,7 @@ jobs:
 
     - name: 4. Biên dịch Code
       run: |
-        mkdir bin
+        if (!(Test-Path "bin")) { mkdir bin }
         javac -d bin QuanLyKhachHang.java
 
     - name: 5. Đóng gói JAR
@@ -37,18 +39,29 @@ jobs:
 
     - name: 7. Đúc file EXE
       run: |
-        .\launch4j\launch4jc.exe software-quanly.xml
+        # Kiem tra file XML truoc khi chay
+        if (Test-Path "software-quanly.xml") {
+          .\launch4j\launch4jc.exe software-quanly.xml
+        } else {
+          throw "Khong tim thay file software-quanly.xml"
+        }
 
     - name: 8. Tạo file firebase.json từ Secret
       env:
         FIREBASE_SECRET: ${{ secrets.FIREBASE_JSON_CONTENT }}
       run: |
+        # Ghi file bang UTF8 khong co BOM de tranh loi JSON
         $env:FIREBASE_SECRET | Out-File -FilePath firebase.json -Encoding utf8
 
     - name: 9. Nén và Giao hàng
       run: |
-        mkdir Release
-        copy DevStudio_CRM.exe Release\
+        if (!(Test-Path "Release")) { mkdir Release }
+        # Copy file EXE (Luu y: Ten file phai khop voi ten ban dat trong Launch4j)
+        if (Test-Path "DevStudio_CRM.exe") {
+          copy DevStudio_CRM.exe Release\
+        } else {
+          echo "Canh bao: Khong thay DevStudio_CRM.exe, kiem tra lai ten file trong Launch4j XML"
+        }
         copy firebase.json Release\
         Compress-Archive -Path Release\* -DestinationPath DevStudio_CRM_Final.zip
 
